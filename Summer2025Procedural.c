@@ -37,6 +37,10 @@ void addPassenger(Passenger** head);
 void loadPassengers(Passenger** head);
 void savePassengers(Passenger* head);
 void clearInputBuffer();
+void displayAll(Passenger* head);
+void displayPassenger(Passenger* head);
+void updatePassenger(Passenger* head);
+void deletePassenger(Passenger** head);
 
 Passenger* createPassengerNode(Passenger p);
 
@@ -72,6 +76,14 @@ void main()
 
         switch (choice) {
         case 1: addPassenger(&head);
+            break;
+        case 2: displayAll(head);
+            break;
+        case 3: displayPassenger(head);
+            break;
+        case 4: updatePassenger(head);
+            break;
+        case 5: deletePassenger(&head);
             break;
         case 0: savePassengers(head);
             printf("Exiting...\n");
@@ -208,4 +220,97 @@ Passenger* createPassengerNode(Passenger p) {
 void clearInputBuffer() {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
+}
+
+
+void displayAll(Passenger* head) 
+{
+    Passenger* cur = head;
+    if (!cur) {
+        printf("No passengers found.\n");
+        return;
+    }
+    while (cur) {
+        printf("%s %s %s %d %s %s %s %s\n",
+            cur->ppsNumber, cur->firstName, cur->lastName,
+            cur->yearBorn, cur->email, cur->travelFrom,
+            cur->travelClass, cur->travelFrequency);
+        cur = cur->NEXT;
+    }
+}
+
+// Display one passenger (by PPS number)
+void displayPassenger(Passenger* head) 
+{
+    char search[10];
+    printf("Enter PPS Number: ");
+    fgets(search, sizeof(search), stdin);
+    strtok(search, "\n");
+
+    Passenger* cur = head;
+    while (cur) {
+        if (strcmp(cur->ppsNumber, search) == 0) {
+            printf("%s %s %s %d %s %s %s %s\n",
+                cur->ppsNumber, cur->firstName, cur->lastName,
+                cur->yearBorn, cur->email, cur->travelFrom,
+                cur->travelClass, cur->travelFrequency);
+            return;
+        }
+        cur = cur->NEXT;
+    }
+    printf("Passenger not found.\n");
+}
+
+void updatePassenger(Passenger* head) 
+{
+    char search[10];
+    printf("Enter PPS Number to update: ");
+    fgets(search, sizeof(search), stdin);
+    strtok(search, "\n");
+
+    Passenger* cur = head;
+    while (cur) {
+        if (strcmp(cur->ppsNumber, search) == 0) {
+            printf("Updating %s %s\n", cur->firstName, cur->lastName);
+            printf("Enter new email: ");
+            fgets(cur->email, sizeof(cur->email), stdin);
+            strtok(cur->email, "\n");
+            printf("Enter new travel class: ");
+            fgets(cur->travelClass, sizeof(cur->travelClass), stdin);
+            strtok(cur->travelClass, "\n");
+            printf("Enter new frequency: ");
+            fgets(cur->travelFrequency, sizeof(cur->travelFrequency), stdin);
+            strtok(cur->travelFrequency, "\n");
+            printf("Updated successfully.\n");
+            return;
+        }
+        cur = cur->NEXT;
+    }
+    printf("Passenger not found.\n");
+}
+
+
+void deletePassenger(Passenger** head) 
+{
+    char search[10];
+    printf("Enter PPS Number to delete: ");
+    fgets(search, sizeof(search), stdin);
+    strtok(search, "\n");
+
+    Passenger* cur = *head;
+    Passenger* prev = NULL;
+
+    while (cur) {
+        if (strcmp(cur->ppsNumber, search) == 0) {
+            if (prev) prev->NEXT = cur->NEXT;
+            else *head = cur->NEXT;
+            free(cur);
+            printf("Passenger deleted.\n");
+            savePassengers(*head);
+            return;
+        }
+        prev = cur;
+        cur = cur->NEXT;
+    }
+    printf("Passenger not found.\n");
 }
