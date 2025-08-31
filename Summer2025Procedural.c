@@ -41,7 +41,8 @@ void displayAll(Passenger* head);
 void displayPassenger(Passenger* head);
 void updatePassenger(Passenger* head);
 void deletePassenger(Passenger** head);
-
+void printReport(Passenger* head);
+void sortByYear(Passenger* head);
 Passenger* createPassengerNode(Passenger p);
 
 void main()
@@ -84,6 +85,10 @@ void main()
         case 4: updatePassenger(head);
             break;
         case 5: deletePassenger(&head);
+            break;
+        case 7: printReport(head);
+            break;
+        case 8: sortByYear(head);
             break;
         case 0: savePassengers(head);
             printf("Exiting...\n");
@@ -171,7 +176,7 @@ void addPassenger(Passenger** head) {
     fgets(p.travelClass, sizeof(p.travelClass), stdin);
     strtok(p.travelClass, "\n");
 
-    printf("Frequency (Less than 3/5, or More than 5 per year): ");
+    printf("Frequency (Less than 3, more than 3 or More than 5 per year): ");
     fgets(p.travelFrequency, sizeof(p.travelFrequency), stdin);
     strtok(p.travelFrequency, "\n");
 
@@ -184,16 +189,23 @@ void addPassenger(Passenger** head) {
 
 //load from file
 void loadPassengers(Passenger** head) {
-    FILE* fp = fopen("passenger.txt", "r");
-    if (!fp) return;
+    FILE* f = fopen("passenger.txt", "r");
+    if (!f) return;
 
-    Passenger p;
-    while (fscanf(fp, "%s %s %s %d %s %s %s %[^\n]",
-        &p.ppsNumber, p.firstName, p.lastName, &p.yearBorn,
-        p.email, p.travelFrom, p.travelClass, p.travelFrequency) == 8) {
-       
+    while (!feof(f)) {
+        Passenger* p = (Passenger*)malloc(sizeof(Passenger));
+        if (fscanf(f, "%d %s %s %d %s %s %s %s\n",
+            &p->ppsNumber, p->firstName, p->lastName, &p->yearBorn,
+            p->email, p->travelFrom, p->travelClass, p->travelFrequency) == 8) {
+            p->NEXT = head;
+            head = p;
+        }
+        else {
+            free(p);
+        }
     }
-    fclose(fp);
+
+    fclose(f);
 }
 
 //save to file
@@ -225,6 +237,7 @@ void clearInputBuffer() {
 
 void displayAll(Passenger* head) 
 {
+
     Passenger* cur = head;
     if (!cur) {
         printf("No passengers found.\n");
@@ -313,4 +326,82 @@ void deletePassenger(Passenger** head)
         cur = cur->NEXT;
     }
     printf("Passenger not found.\n");
+}
+
+
+void printReport(Passenger* head) {
+    FILE* fp = fopen("report.txt", "w");
+    if (!fp) {
+        printf("Could not create report file.\n");
+        return;
+    }
+    Passenger* cur = head;
+    while (cur) {
+        fprintf(fp, "%s %s %s %d %s %s %s %s\n",
+            cur->ppsNumber, cur->firstName, cur->lastName,
+            cur->yearBorn, cur->email, cur->travelFrom,
+            cur->travelClass, cur->travelFrequency);
+        cur = cur->NEXT;
+    }
+    fclose(fp);
+    printf("Report generated: report.txt\n");
+}
+void sortByYear(Passenger* head) 
+{
+    if (!head) {
+        printf("No passengers available.\n");
+        return;
+    }
+
+
+    int count = 0;
+    Passenger* cur = head;
+    while (cur) {
+        count++;
+        cur = cur->NEXT;
+    }
+
+    Passenger** arr = malloc(count * sizeof(Passenger*));
+    if (!arr) 
+    {
+        printf("Memory allocation failed.\n");
+        return;
+    }
+
+    cur = head;
+    for (int i = 0; i < count; i++) {
+        arr[i] = cur;
+        cur = cur->NEXT;
+    }
+
+    for (int i = 0; i < count - 1; i++) 
+    {
+        for (int j = i + 1; j < count; j++) 
+        {
+            if (arr[i]->yearBorn > arr[j]->yearBorn) 
+            {
+                Passenger* temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+    }
+
+    for (int i = 0; i < count - 1; i++) 
+    {
+        arr[i]->NEXT = arr[i + 1];
+    }
+    arr[count - 1]->NEXT = NULL;
+
+
+    printf("\nPassengers sorted by year born:\n");
+    for (int i = 0; i < count; i++) 
+    {
+        printf("%s %s %s %d %s %s %s %s\n",
+            arr[i]->ppsNumber, arr[i]->firstName, arr[i]->lastName,
+            arr[i]->yearBorn, arr[i]->email, arr[i]->travelFrom,
+            arr[i]->travelClass, arr[i]->travelFrequency);
+    }
+
+    free(arr);
 }
